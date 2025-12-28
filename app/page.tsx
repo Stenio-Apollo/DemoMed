@@ -218,7 +218,7 @@ export default function RiskDashboardPage() {
                 </button>
 
                 <button
-                    className="px-4 py-2 rounded bg-blue-600 text-white disabled:opacity-50"
+                    className="px-4 py-2 rounded-xl hover:cursor-pointer bg-orange-200 hover:-translate-y-1 hover:bg-gradient-to-r from-orange-200 via-orange-100 to-orange-200 text-black text-md disabled:opacity-50"
                     onClick={submitAssessment}
                     disabled={loading || rawPatients.length === 0}
                 >
@@ -268,17 +268,20 @@ export default function RiskDashboardPage() {
 
             <div className="grid md:grid-cols-3 gap-4">
                 <div className="p-4 rounded border">
-                    <h2 className="font-semibold">High-Risk Patients (total ≥ 4)</h2>
+                    <h2 className="font-semibold ">High-Risk Patients (total ≥ 4)</h2>
                     <p className="text-sm text-gray-600">Count: {analysis.highRiskPatientIds.length}</p>
                     <ul className="mt-2 text-sm list-disc pl-5">
                         {analysis.highRiskPatientIds.map((id) => (
                             <li key={id}>{id}</li>
                         ))}
                     </ul>
-                    <div className="p-4 rounded border mt-3">
-                        <h2 className="font-semibold">High-Risk Breakdown (debug)</h2>
-                        <p className="text-sm text-gray-600">
-                            Shows the category scores for each patient with total ≥ 4.
+                    <details className="group p-4 rounded border mt-3">
+                        <summary className="cursor-pointer font-semibold text-md text-orange-200">
+                            Show High-Risk Breakdown
+                        </summary>
+
+                        <p className="mt-2 text-sm text-gray-600">
+                            Shows category scores for patients with total risk ≥ 4.
                         </p>
 
                         <div className="overflow-auto mt-3">
@@ -300,6 +303,7 @@ export default function RiskDashboardPage() {
                                         const bp = r.categories.find((c) => c.key === "bp");
                                         const temp = r.categories.find((c) => c.key === "temp");
                                         const age = r.categories.find((c) => c.key === "age");
+
                                         return (
                                             <tr key={r.id} className="border-b">
                                                 <td className="py-2 pr-4 font-medium">{r.id}</td>
@@ -319,22 +323,26 @@ export default function RiskDashboardPage() {
                                 </tbody>
                             </table>
                         </div>
-                    </div>
+                    </details>
+
 
                 </div>
 
 
                 <div className="p-4 rounded border">
-                    <h2 className="font-semibold">Fever Patients (temp ≥ 99.6°F)</h2>
+                    <h2 className="font-semibold ">Fever Patients (temp ≥ 99.6°F)</h2>
                     <p className="text-sm text-gray-600">Count: {analysis.feverPatientIds.length}</p>
                     <ul className="mt-2 text-sm list-disc pl-5">
                         {analysis.feverPatientIds.map((id) => (
                             <li key={id}>{id}</li>
                         ))}
                     </ul>
-                    <div className="p-4 rounded border mt-3">
-                        <h2 className="font-semibold">Fever Breakdown (debug)</h2>
-                        <p className="text-sm text-gray-600">
+                    <details className="p-4 rounded border mt-3">
+                        <summary className="cursor-pointer font-semibold text-orange-200">
+                            Show Fever Breakdown
+                        </summary>
+
+                        <p className="mt-2 text-sm text-gray-600">
                             Patients with temperature ≥ 99.6°F.
                         </p>
 
@@ -350,7 +358,7 @@ export default function RiskDashboardPage() {
                                 </thead>
                                 <tbody>
                                 {analysis.scored
-                                    .filter((r) => r.fever) // temp >= 99.6
+                                    .filter((r) => r.fever)
                                     .map((r) => {
                                         const temp = r.categories.find((c) => c.key === "temp");
                                         return (
@@ -359,7 +367,7 @@ export default function RiskDashboardPage() {
                                                 <td className="py-2 pr-4 font-semibold">{r.totalRisk}</td>
                                                 <td className="py-2 pr-4">{temp?.score ?? 0}</td>
                                                 <td className="py-2 pr-4 text-gray-600">
-                                                    {temp?.reasons?.join(" | ") ?? ""}
+                                                    {temp?.reasons.join(" | ")}
                                                 </td>
                                             </tr>
                                         );
@@ -367,12 +375,13 @@ export default function RiskDashboardPage() {
                                 </tbody>
                             </table>
                         </div>
-                    </div>
+                    </details>
+
 
                 </div>
 
                 <div className="p-4 rounded border">
-                    <h2 className="font-semibold">Data Quality Issues</h2>
+                    <h2 className="font-semibold ">Data Quality Issues</h2>
                     <p className="text-sm text-gray-600">Count: {analysis.dataQualityIssueIds.length}</p>
                     <ul className="mt-2 text-sm list-disc pl-5">
                         {analysis.dataQualityIssues.map((i) => (
@@ -381,10 +390,13 @@ export default function RiskDashboardPage() {
                             </li>
                         ))}
                     </ul>
-                    <div className="p-4 rounded border mt-3">
-                        <h2 className="font-semibold">Data Quality Breakdown (debug)</h2>
-                        <p className="text-sm text-gray-600">
-                            Patients with invalid/missing Age, Temperature, or BP (per rubric).
+                    <details className="p-4 rounded border mt-3">
+                        <summary className="cursor-pointer font-semibold text-orange-200">
+                           Show Data Quality Issues Breakdown
+                        </summary>
+
+                        <p className="mt-2 text-sm text-gray-600">
+                            Invalid or missing Age, Temperature, or BP.
                         </p>
 
                         <div className="overflow-auto mt-3">
@@ -407,7 +419,9 @@ export default function RiskDashboardPage() {
                                 </tbody>
                             </table>
                         </div>
-                    </div>
+                    </details>
+
+
 
                 </div>
             </div>
@@ -422,7 +436,7 @@ export default function RiskDashboardPage() {
                 </div>
 
                 <details className="mt-3">
-                    <summary className="cursor-pointer text-sm text-blue-700">Show IDs</summary>
+                    <summary className="cursor-pointer text-sm text-blue-400">Show IDs</summary>
                     <pre className="mt-2 text-xs overflow-auto p-3 rounded bg-gray-50">
 {JSON.stringify(
     {
