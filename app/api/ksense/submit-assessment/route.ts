@@ -34,7 +34,10 @@ export async function POST(req: Request) {
             headers: {
                 "Content-Type": "application/json",
                 "x-api-key": apiKey,
+                "accept": "application/json",
             },
+
+
             body: JSON.stringify({
                 high_risk_patients: body.high_risk_patients,
                 fever_patients: body.fever_patients,

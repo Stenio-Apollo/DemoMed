@@ -29,6 +29,10 @@ export async function GET(req: Request) {
         const baseUrl = getEnv("KSENSE_BASE_URL");
         const apiKey = getEnv("KSENSE_API_KEY");
 
+        console.log("KSENSE_BASE_URL =", baseUrl);
+        console.log("KSENSE_API_KEY prefix =", apiKey.slice(0, 4), "len =", apiKey.length);
+
+
         const { searchParams } = new URL(req.url);
         const page = searchParams.get("page") ?? "1";
         const limit = searchParams.get("limit") ?? "5";
@@ -42,6 +46,7 @@ export async function GET(req: Request) {
                 "x-api-key": apiKey,
                 "accept": "application/json",
             },
+
             cache: "no-store",
         });
 
@@ -49,13 +54,14 @@ export async function GET(req: Request) {
         let json: any = null;
         try {
             json = text ? JSON.parse(text) : null;
-        } catch {
-            // If API returns non-JSON occasionally
+        } catch (e: any) {
+            console.error("PATIENTS ROUTE ERROR:", e);
             return NextResponse.json(
-                { error: "Upstream returned non-JSON", status: res.status, raw: text },
-                { status: 502 }
+                { error: e?.message ?? "Server error", stack: e?.stack ?? null },
+                { status: 500 }
             );
         }
+
 
         if (!res.ok) {
             return NextResponse.json(
