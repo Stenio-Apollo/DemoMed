@@ -140,25 +140,46 @@ export default function RiskDashboardPage() {
 
     // ✅ this is the submit function that uses setLoading/setError/analysis
     async function submitAssessment() {
+        // guard: don’t submit with no data
+        if (rawPatients.length === 0) {
+            setError("No patients loaded yet. Click 'Load All Patients' first.");
+            return;
+        }
+
         setLoading(true);
         setError(null);
 
         try {
+            // Recompute analysis *right now* from current state (avoids stale memo issues)
+            const currentInputs = rawPatients.map(safeMapToPatientInput);
+            const currentAnalysis = analyzePatients(currentInputs);
+
+            const payload = {
+                high_risk_patients: currentAnalysis.highRiskPatientIds,
+                fever_patients: currentAnalysis.feverPatientIds,
+                data_quality_issues: currentAnalysis.dataQualityIssueIds,
+            };
+
+            console.log("Submitting payload counts:", {
+                high_risk: payload.high_risk_patients.length,
+                fever: payload.fever_patients.length,
+                data_quality: payload.data_quality_issues.length,
+            });
+            console.log("Submitting payload sample:", {
+                high_risk: payload.high_risk_patients.slice(0, 5),
+                fever: payload.fever_patients.slice(0, 5),
+                data_quality: payload.data_quality_issues.slice(0, 5),
+            });
+
             const res = await fetch("/api/ksense/submit-assessment", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    high_risk_patients: analysis.highRiskPatientIds,
-                    fever_patients: analysis.feverPatientIds,
-                    data_quality_issues: analysis.dataQualityIssueIds,
-                }),
+                body: JSON.stringify(payload),
             });
 
             const data = await res.json().catch(() => ({}));
 
-            if (!res.ok) {
-                throw new Error(`Submit failed (${res.status}): ${JSON.stringify(data)}`);
-            }
+            if (!res.ok) throw new Error(`Submit failed (${res.status}): ${JSON.stringify(data)}`);
 
             alert("Assessment submitted ✅");
             console.log("Submit response:", data);
@@ -168,6 +189,7 @@ export default function RiskDashboardPage() {
             setLoading(false);
         }
     }
+
 
     useEffect(() => {
         fetchPage(page, limit);
@@ -198,7 +220,7 @@ export default function RiskDashboardPage() {
                 <button
                     className="px-4 py-2 rounded bg-blue-600 text-white disabled:opacity-50"
                     onClick={submitAssessment}
-                    disabled={loading}
+                    disabled={loading || rawPatients.length === 0}
                 >
                     Submit Alert List
                 </button>
@@ -279,7 +301,32 @@ export default function RiskDashboardPage() {
             </div>
 
             {loading && <div className="text-sm text-gray-600">Loading…</div>}
+            <div className="p-4 rounded border">
+                <h2 className="font-semibold">Submission Payload Preview</h2>
+                <div className="mt-2 text-sm space-y-2">
+                    <div><span className="font-medium">high_risk_patients:</span> {analysis.highRiskPatientIds.length}</div>
+                    <div><span className="font-medium">fever_patients:</span> {analysis.feverPatientIds.length}</div>
+                    <div><span className="font-medium">data_quality_issues:</span> {analysis.dataQualityIssueIds.length}</div>
+                </div>
+
+                <details className="mt-3">
+                    <summary className="cursor-pointer text-sm text-blue-700">Show IDs</summary>
+                    <pre className="mt-2 text-xs overflow-auto p-3 rounded bg-gray-50">
+{JSON.stringify(
+    {
+        high_risk_patients: analysis.highRiskPatientIds,
+        fever_patients: analysis.feverPatientIds,
+        data_quality_issues: analysis.dataQualityIssueIds,
+    },
+    null,
+    2
+)}
+    </pre>
+                </details>
+            </div>
+
         </div>
+
     );
 }
 
