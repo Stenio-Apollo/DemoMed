@@ -275,7 +275,54 @@ export default function RiskDashboardPage() {
                             <li key={id}>{id}</li>
                         ))}
                     </ul>
+                    <div className="p-4 rounded border mt-3">
+                        <h2 className="font-semibold">High-Risk Breakdown (debug)</h2>
+                        <p className="text-sm text-gray-600">
+                            Shows the category scores for each patient with total ≥ 4.
+                        </p>
+
+                        <div className="overflow-auto mt-3">
+                            <table className="min-w-[900px] text-sm">
+                                <thead>
+                                <tr className="text-left border-b">
+                                    <th className="py-2 pr-4">ID</th>
+                                    <th className="py-2 pr-4">Total</th>
+                                    <th className="py-2 pr-4">BP</th>
+                                    <th className="py-2 pr-4">Temp</th>
+                                    <th className="py-2 pr-4">Age</th>
+                                    <th className="py-2 pr-4">Reasons</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {analysis.scored
+                                    .filter((r) => r.totalRisk >= 4)
+                                    .map((r) => {
+                                        const bp = r.categories.find((c) => c.key === "bp");
+                                        const temp = r.categories.find((c) => c.key === "temp");
+                                        const age = r.categories.find((c) => c.key === "age");
+                                        return (
+                                            <tr key={r.id} className="border-b">
+                                                <td className="py-2 pr-4 font-medium">{r.id}</td>
+                                                <td className="py-2 pr-4 font-semibold">{r.totalRisk}</td>
+                                                <td className="py-2 pr-4">{bp?.score ?? 0}</td>
+                                                <td className="py-2 pr-4">{temp?.score ?? 0}</td>
+                                                <td className="py-2 pr-4">{age?.score ?? 0}</td>
+                                                <td className="py-2 pr-4 text-gray-600">
+                                                    {[bp, temp, age]
+                                                        .filter(Boolean)
+                                                        .flatMap((c) => c!.reasons.map((x) => `${c!.label}: ${x}`))
+                                                        .join(" | ")}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
                 </div>
+
 
                 <div className="p-4 rounded border">
                     <h2 className="font-semibold">Fever Patients (temp ≥ 99.6°F)</h2>
@@ -285,6 +332,43 @@ export default function RiskDashboardPage() {
                             <li key={id}>{id}</li>
                         ))}
                     </ul>
+                    <div className="p-4 rounded border mt-3">
+                        <h2 className="font-semibold">Fever Breakdown (debug)</h2>
+                        <p className="text-sm text-gray-600">
+                            Patients with temperature ≥ 99.6°F.
+                        </p>
+
+                        <div className="overflow-auto mt-3">
+                            <table className="min-w-[800px] text-sm">
+                                <thead>
+                                <tr className="text-left border-b">
+                                    <th className="py-2 pr-4">ID</th>
+                                    <th className="py-2 pr-4">Total</th>
+                                    <th className="py-2 pr-4">Temp Score</th>
+                                    <th className="py-2 pr-4">Temp Reasons</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {analysis.scored
+                                    .filter((r) => r.fever) // temp >= 99.6
+                                    .map((r) => {
+                                        const temp = r.categories.find((c) => c.key === "temp");
+                                        return (
+                                            <tr key={r.id} className="border-b">
+                                                <td className="py-2 pr-4 font-medium">{r.id}</td>
+                                                <td className="py-2 pr-4 font-semibold">{r.totalRisk}</td>
+                                                <td className="py-2 pr-4">{temp?.score ?? 0}</td>
+                                                <td className="py-2 pr-4 text-gray-600">
+                                                    {temp?.reasons?.join(" | ") ?? ""}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
                 </div>
 
                 <div className="p-4 rounded border">
@@ -297,6 +381,34 @@ export default function RiskDashboardPage() {
                             </li>
                         ))}
                     </ul>
+                    <div className="p-4 rounded border mt-3">
+                        <h2 className="font-semibold">Data Quality Breakdown (debug)</h2>
+                        <p className="text-sm text-gray-600">
+                            Patients with invalid/missing Age, Temperature, or BP (per rubric).
+                        </p>
+
+                        <div className="overflow-auto mt-3">
+                            <table className="min-w-[800px] text-sm">
+                                <thead>
+                                <tr className="text-left border-b">
+                                    <th className="py-2 pr-4">ID</th>
+                                    <th className="py-2 pr-4">Reasons</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {analysis.dataQualityIssues.map((issue) => (
+                                    <tr key={issue.id} className="border-b">
+                                        <td className="py-2 pr-4 font-medium">{issue.id}</td>
+                                        <td className="py-2 pr-4 text-gray-600">
+                                            {issue.reasons.join(" | ")}
+                                        </td>
+                                    </tr>
+                                ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
