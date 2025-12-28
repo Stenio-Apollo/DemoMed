@@ -38,9 +38,14 @@ function toNumber(value: unknown): number | null {
 }
 
 function parseBpString(bp: string): { systolic: number | null; diastolic: number | null } {
-    // accepts "120/80", "120 / 80"
-    const m = bp.match(/^\s*(\d{2,3})\s*\/\s*(\d{2,3})\s*$/);
+    // Accept:
+    // "120/80", "120 / 80", "120/80 mmHg", "120-80"
+    const cleaned = bp.trim().toLowerCase().replace("mmhg", "").trim();
+
+    // allow / or -
+    const m = cleaned.match(/^\s*(\d{2,3})\s*[\/-]\s*(\d{2,3})\s*$/);
     if (!m) return { systolic: null, diastolic: null };
+
     return { systolic: Number(m[1]), diastolic: Number(m[2]) };
 }
 
